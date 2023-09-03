@@ -40,6 +40,25 @@ void Backuper::initUI()
     this->qpbScan->move(400, 10);
     connect(this->qpbScan, &QPushButton::clicked, this, &Backuper::scanFile);
 
+    // show scan result
+    // this->qlScanRes = new QLabel(this);
+    // this->qlScanRes->resize(500, 500);
+    // this->qlScanRes->move(10, 100);
+    // this->qlScanRes->setFrameShape(QFrame::Box);
+    // this->qlScanRes->setStyleSheet(lineBorder);
+
+    this->scanResView = new QTreeView(this);
+    this->scanResView->resize(500, 500);
+    this->scanResView->move(10, 100);
+    this->scanResModel = new QStandardItemModel(0, 3, this);
+    this->scanResModel->setHeaderData(0, Qt::Horizontal, "后缀");
+    // this->filesTree
+    this->scanResModel->setHeaderData(1, Qt::Horizontal, "数量");
+    this->scanResModel->setHeaderData(2, Qt::Horizontal, "总大小");
+    this->scanResView->setModel(scanResModel);
+
+    this->scanResModel->setRowCount(this->scanRes.size());
+    
     // debug message
     this->msgBox = new QTextEdit(this);
     this->msgBox->resize(400, 600);
@@ -58,13 +77,40 @@ void Backuper::scanFile()
     QString rootPath = this->qleSrcPath->text();
     boost::filesystem::path root(rootPath.toStdString());
     boost::filesystem::recursive_directory_iterator rdi(root);
+    this->scanRes.clear();
+    this->totalSize.clear();
     for (auto& p: rdi)
     {
         if (boost::filesystem::is_directory(p.path()))
         {
             continue;
         }
-        this->msgBox->append(p.path().filename().string().c_str());
+        std::string curExtention = p.path().extension().string();
+        if (this->scanRes.find(curExtention) != this->scanRes.end())
+        {
+            this->scanRes[curExtention].push_back(p.path().string());
+            this->totalSize[curExtention] += boost::filesystem::file_size(p.path());
+        }
+        else
+        {
+            this->scanRes[curExtention] = std::vector<std::string>({p.path().string()});
+            this->totalSize[curExtention] = boost::filesystem::file_size(p.path());
+        }
+    }
+    this->scanResModel->removeRows(0, this->scanResModel->rowCount());
+    int i = 0;
+    for (auto& it: this->scanRes)
+    {
+        QStandardItem* curItem0 = new QStandardItem(it.first.c_str());
+        curItem0->setCheckable(true);
+        this->scanResModel->setItem(i, 0, curItem0);
+        QStandardItem* curItem1 = new QStandardItem(QString::number(it.second.size()));
+        this->scanResModel->setItem(i, 1, curItem1);
+        std::string _ss = convertFileSize(this->totalSize[it.first]);
+        this->msgBox->append(QString::fromStdString("==" + _ss + "=="));
+        QStandardItem* curItem2 = new QStandardItem(QString::fromStdString(convertFileSize(this->totalSize[it.first])));
+        this->scanResModel->setItem(i, 2, curItem2);
+        ++i;
     }
 }
 
