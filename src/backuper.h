@@ -11,6 +11,8 @@
 #include<unordered_map>
 #include<QStandardItemModel>
 #include<QTreeView>
+
+#include<iostream>
 // #include<glo
 #include"global.h"
 #include"tools.h"

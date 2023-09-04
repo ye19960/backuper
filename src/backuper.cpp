@@ -42,7 +42,7 @@ void Backuper::initUI()
 
     this->qpbBackup = new QPushButton("备份", this);
     this->qpbBackup->move(400, 50);
-    connect(this->qpbBackup, &QPushButton::clicked, this, )
+    connect(this->qpbBackup, &QPushButton::clicked, this, &Backuper::backupFile);
 
     // show scan result
     // this->qlScanRes = new QLabel(this);
@@ -120,7 +120,41 @@ void Backuper::scanFile()
 
 void Backuper::backupFile()
 {
-    QString 
+    std::string dstRootStr = this->qleDstPath->text().toStdString();
+    boost::filesystem::path dRootPath(dstRootStr);
+    std::string srcRootStr = this->qleSrcPath->text().toStdString();
+    boost::filesystem::path sRootPath(srcRootStr);
+    int srcRootSize = srcRootStr.size();
+
+    if (!boost::filesystem::exists(dRootPath)){
+        if (!boost::filesystem::create_directories(dRootPath)){
+            std::cout << "create destinate directory fail." << std::endl;
+        }
+    }
+
+    for (auto& it: this->scanRes){
+        for (auto& itStr: it.second){
+            boost::filesystem::path curSrcFilePath(itStr);
+            std::string curDstFilePathStr = dstRootStr + itStr.substr(srcRootSize, itStr.size() - srcRootSize);
+            boost::filesystem::path curDstFilePath(curDstFilePathStr);
+            boost::filesystem::path curParentPath = curDstFilePath.parent_path();
+            if (!boost::filesystem::exists(curParentPath)){
+                if (!boost::filesystem::create_directories(curParentPath)){
+                    std::cout << "create directory fail : " << curParentPath.string() << std::endl;
+                }
+                boost::filesystem::copy_file(curSrcFilePath, curDstFilePath, boost::filesystem::copy_options::overwrite_existing);
+            }else{
+                if (boost::filesystem::exists(curDstFilePath)){
+                    if (boost::filesystem::last_write_time(curDstFilePath) - boost::filesystem::last_write_time(curSrcFilePath) < 1){
+                        continue;
+                    }
+                }
+                boost::filesystem::copy_file(curSrcFilePath, curDstFilePath, boost::filesystem::copy_options::overwrite_existing);
+
+            }
+
+        }
+    }
 }
 
 Backuper::~Backuper()
