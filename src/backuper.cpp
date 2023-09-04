@@ -40,6 +40,10 @@ void Backuper::initUI()
     this->qpbScan->move(400, 10);
     connect(this->qpbScan, &QPushButton::clicked, this, &Backuper::scanFile);
 
+    this->qpbBackup = new QPushButton("备份", this);
+    this->qpbBackup->move(400, 50);
+    connect(this->qpbBackup, &QPushButton::clicked, this, )
+
     // show scan result
     // this->qlScanRes = new QLabel(this);
     // this->qlScanRes->resize(500, 500);
@@ -112,6 +116,11 @@ void Backuper::scanFile()
         this->scanResModel->setItem(i, 2, curItem2);
         ++i;
     }
+}
+
+void Backuper::backupFile()
+{
+    QString 
 }
 
 Backuper::~Backuper()

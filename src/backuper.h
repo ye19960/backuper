@@ -32,6 +32,7 @@ private:
     QPushButton* qpbDstPath;
 
     QPushButton* qpbScan;
+    QPushButton* qpbBackup;
     QLabel* qlScanRes;
     QTreeView* scanResView;
     QStandardItemModel* scanResModel;
@@ -44,6 +45,7 @@ private:
     void initUI();
     void setFilePath(QLineEdit* qle);
     void scanFile();
+    void backupFile();
 
 
 
