@@ -1,12 +1,36 @@
 #include "backuper.h"
 
+pthread_t ptOthers;
+
+// void initOthers(Backuper* pbackuper){
+//     if (nullptr != pbackuper && nullptr != pbackuper->history)
+// }
+
 Backuper::Backuper(QWidget* parent)
     : QMainWindow(parent)
 {
+    init();
     this->resize(1600, 900);
 
     this->initUI();
 
+}
+
+void Backuper::init()
+{
+    qlSrcPath = nullptr;
+    qlDstPath = nullptr;
+    qleSrcPath = nullptr;
+    qleDstPath = nullptr;
+    qpbSrcPath = nullptr;
+    qpbDstPath =nullptr;
+    qpbScan = nullptr;
+    qpbBackup = nullptr;
+    qlScanRes = nullptr;
+    scanResView = nullptr;
+    scanResModel = nullptr;
+    msgBox = nullptr;
+    history = nullptr;
 }
 
 void Backuper::initUI()
@@ -17,6 +41,8 @@ void Backuper::initUI()
 
     this->qleSrcPath = new QLineEdit(this);
     this->qleSrcPath->move(100, 10);
+    // this->qleSrcPath->resize(200, 20);
+    this->qleSrcPath->setFixedWidth(200);
 
     this->qpbSrcPath = new QPushButton("浏览", this);
     this->qpbSrcPath->move(300, 10);
@@ -29,6 +55,7 @@ void Backuper::initUI()
 
     this->qleDstPath = new QLineEdit(this);
     this->qleDstPath->move(100, 50);
+    this->qleDstPath->setFixedWidth(200);
 
     this->qpbDstPath = new QPushButton("浏览", this);
     this->qpbDstPath->move(300, 50);
@@ -66,8 +93,17 @@ void Backuper::initUI()
     // debug message
     this->msgBox = new QTextEdit(this);
     this->msgBox->resize(400, 600);
-    this->msgBox->move(600, 10);
+    this->msgBox->move(600, 600);
+
+    // int ret = pthread_create(&ptOthers, NULL, this->initOthers, this);
 }
+
+// void Backuper::initOthers()
+// {
+//     if (nullptr != this->history){
+
+//     }
+// }
 
 void Backuper::setFilePath(QLineEdit* qle)
 {
@@ -110,12 +146,13 @@ void Backuper::scanFile()
         this->scanResModel->setItem(i, 0, curItem0);
         QStandardItem* curItem1 = new QStandardItem(QString::number(it.second.size()));
         this->scanResModel->setItem(i, 1, curItem1);
-        std::string _ss = convertFileSize(this->totalSize[it.first]);
-        this->msgBox->append(QString::fromStdString("==" + _ss + "=="));
+        // std::string _ss = convertFileSize(this->totalSize[it.first]);
+        // this->msgBox->append(QString::fromStdString("==" + _ss + "=="));
         QStandardItem* curItem2 = new QStandardItem(QString::fromStdString(convertFileSize(this->totalSize[it.first])));
         this->scanResModel->setItem(i, 2, curItem2);
         ++i;
     }
+    this->msgBox->append("file scanned.");
 }
 
 void Backuper::backupFile()
@@ -128,7 +165,9 @@ void Backuper::backupFile()
 
     if (!boost::filesystem::exists(dRootPath)){
         if (!boost::filesystem::create_directories(dRootPath)){
-            std::cout << "create destinate directory fail." << std::endl;
+            this->msgBox->append("create destinate root diretory failed.");
+            this->msgBox->append("backup files failed. please check destinate directory.");
+            return;
         }
     }
 
@@ -141,11 +180,13 @@ void Backuper::backupFile()
             if (!boost::filesystem::exists(curParentPath)){
                 if (!boost::filesystem::create_directories(curParentPath)){
                     std::cout << "create directory fail : " << curParentPath.string() << std::endl;
+                    return ;
                 }
                 boost::filesystem::copy_file(curSrcFilePath, curDstFilePath, boost::filesystem::copy_options::overwrite_existing);
             }else{
                 if (boost::filesystem::exists(curDstFilePath)){
-                    if (boost::filesystem::last_write_time(curDstFilePath) - boost::filesystem::last_write_time(curSrcFilePath) < 1){
+                    if (boost::filesystem::last_write_time(curSrcFilePath) - boost::filesystem::last_write_time(curDstFilePath) < 1){
+                        // std::time_t
                         continue;
                     }
                 }
@@ -155,6 +196,7 @@ void Backuper::backupFile()
 
         }
     }
+    this->msgBox->append("file backuped.");
 }
 
 Backuper::~Backuper()

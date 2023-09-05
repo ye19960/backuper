@@ -9,9 +9,11 @@
 #include<QTextEdit>
 #include<boost/filesystem.hpp>
 #include<unordered_map>
+#include<map>
 #include<QStandardItemModel>
 #include<QTreeView>
-
+// #include<thread>
+#include<pthread.h>
 #include<iostream>
 // #include<glo
 #include"global.h"
@@ -40,11 +42,15 @@ private:
     QStandardItemModel* scanResModel;
     // QStandardItemModel* filesTree;
     QTextEdit* msgBox;
-    std::unordered_map<std::string, std::vector<std::string>> scanRes;
+    // std::unordered_map<std::string, std::vector<std::string>> scanRes;
+    std::map<std::string, std::vector<std::string>> scanRes;
     std::unordered_map<std::string, fileSize_t> totalSize;
     // std::unordered_map<std::string, std::unordered_map<std::string, std::vector<std::string>>> scanRes;
+    std::fstream* history;
 
+    void init();
     void initUI();
+    void initOthers();
     void setFilePath(QLineEdit* qle);
     void scanFile();
     void backupFile();
